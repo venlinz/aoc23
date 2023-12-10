@@ -38,14 +38,14 @@ fn part2(input: String, numbers: &Vec<Number>) {
     let mut total_sum: usize = 0;
 
     for line in input.lines() {
-        let (first_num, second_num) = get_first_and_last_with_word_support(line, numbers);
+        let (first_num, second_num) = get_first_and_last_number_with_word(line, numbers);
         let combined = first_num * 10 + second_num;
         total_sum += combined;
     }
     println!("part1: total_sum: {}", total_sum);
 }
 
-fn get_first_and_last_with_word_support(line: &str, numbers: &Vec<Number>) -> (usize, usize) {
+fn get_first_and_last_number_with_word(line: &str, numbers: &Vec<Number>) -> (usize, usize) {
     let mut first_num: usize = 0;
     let mut second_num: usize = 0;
     let line_len = line.len();

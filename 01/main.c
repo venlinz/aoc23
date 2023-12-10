@@ -3,12 +3,19 @@
 #include <stdio.h>
 #include <string.h>
 
+
+typedef struct {
+    int first_num;
+    int last_num;
+} NumberPair;
+
 char * get_input(const char *filepath);
 bool is_digit(char c);
 int part1(char *input);
 int part2(char *input);
 int is_word_digit(char *input);
 int get_second_number_for_part2(char *input);
+NumberPair get_first_and_last_number_with_word(char * line, int line_len);
 // int combine_numbers(int first_num, int second_num);
 
 #define MAX_FILE_SIZE (24 * 1024)
@@ -18,10 +25,10 @@ char input[MAX_FILE_SIZE] = {0};
 typedef struct {
     char *number;
     int len;
-} NUMBER;
+} Number;
 
 #define NUMBERS_LEN 9
-NUMBER NUMBERS[NUMBERS_LEN] = 
+Number NUMBERS[NUMBERS_LEN] = 
 {
     { .number = "one", .len = 3, },
     { .number = "two", .len = 3, },
@@ -34,7 +41,6 @@ NUMBER NUMBERS[NUMBERS_LEN] =
     { .number = "nine", .len = 4}
 };
 
-
 int main(void) {
     const char *filepath = "./input.txt";
     char *input = get_input(filepath);
@@ -42,43 +48,26 @@ int main(void) {
     {
         return 1;
     }
-    int sum = part1(input);
-    printf("part1: total sum: %i\n", sum);
-    sum = part2(input);
-    printf("part2: total sum: %i\n", sum);
+    int sum1 = part1(input);
+    printf("part1: total sum: %i\n", sum1);
+    int sum2 = part2(input);
+    printf("part2: total sum: %i\n", sum2);
     return 0;
 }
 
 int part2(char *input) {
     int sum = 0;
-    int first_num = 0;
-    int second_num = 0;
     int line_count = 0;
     for (int i = 0; input[i] != '\0'; ++i) {
-        if (first_num == 0 && (is_digit(input[i]))) {
-            first_num = input[i] - '0';
-            second_num = first_num;
+        char line[256] = {0};
+        int line_len = 0;
+        for (; input[i] != '\0' && input[i] != '\n'; ++line_len, ++i) {
+            line[line_len] = input[i];
         }
-        if (first_num == 0) {
-            first_num = is_word_digit(input + i);
-            second_num = first_num;
-        }
+        NumberPair np = get_first_and_last_number_with_word(line, line_len);
 
-        if (first_num == 0) {
-            continue;
-        }
-
-        int second_word_num = get_second_number_for_part2(input + i);
-        if (second_word_num) {
-            second_num = second_word_num;
-        }
-        i++;
-        while (input[i] != '\0' && input[i] != '\n') i++;
-        // printf("ln: %i, fd: %i, sd: %i\n", line_count, first_num, second_num);
-        int two_digit_num = first_num * 10 + second_num;
+        int two_digit_num = np.first_num * 10 + np.last_num;
         sum += two_digit_num;
-        first_num = 0;
-        second_num = 0;
         line_count++;
     }
     return sum;
@@ -116,11 +105,9 @@ char * get_input(const char *filepath) {
     int ret = fseek(f, 0, SEEK_END);
     assert(ret == 0 && "fseek failed");
     size_t filesize = ftell(f);
-    printf("filesize of %s: %zu\n", filepath, filesize);
     assert(filesize <= MAX_FILE_SIZE);
     rewind(f);
     ret = fread(input, filesize, 1, f);
-    printf("fread returnvalue: %d\n", ret);
     // assert(ret == 1);
     if (!feof(f) && ferror(f)) {
         perror("ERROR: ");
@@ -168,4 +155,43 @@ int get_second_number_for_part2(char *input) {
         line_len--;
     }
     return 0;
+}
+
+NumberPair get_first_and_last_number_with_word(char * line, int line_len) {
+    int first_num = 0;
+    int second_num = 0;
+    for (int i = 0; i < line_len; ++i) {
+        char c = line[i];
+        if (is_digit(c)) {
+            if (first_num == 0) {
+                first_num = c - '0';
+                second_num = first_num;
+            } else {
+                second_num = c - '0';
+            }
+        } else {
+            char * word = ((char *) line) + i;
+            for (int k = 0; k < NUMBERS_LEN; ++k) {
+                Number num = NUMBERS[k];
+                if (line_len - i < num.len) {
+                    continue;
+                }
+
+                if (strncmp(num.number, word, num.len) == 0) {
+                    if (first_num == 0) {
+                        first_num = k + 1;
+                        second_num = first_num;
+                    } else {
+                        second_num = k + 1;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    return (NumberPair) {
+        .first_num = first_num,
+        .last_num = second_num,
+    };
 }
