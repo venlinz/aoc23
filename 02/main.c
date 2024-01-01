@@ -9,6 +9,7 @@
 char * lines(char **string);
 void chop_by_delim(char **string, char *delim);
 char * get_input(const char *filepath);
+char ** tokenize_by_delim(char **string, char *delim, char **tokens);
 
 bool check_is_game_possible(char *line);
 bool validate_color_count(char *color, char *count_str);
@@ -79,49 +80,28 @@ char * get_input(const char *filepath) {
 }
 
 bool check_is_game_possible(char *line) {
-    char sets_of_cubes[10][256] = {0};
-    int set_count = 0;
-    int k = 0;
+    // printf("%s\n", line);
     chop_by_delim(&line, ":");
-    size_t len = strlen(line);
-    for (size_t i = 0; i < len; i++) {
-        if (line[i] == ';') {
-            set_count++;
-            i++;
-            k = 0;
-        } else {
-            sets_of_cubes[set_count][k] = line[i];
-            k++;
+    char *games[16] = {0};
+    tokenize_by_delim(&line, ";", (char **) games);
+    bool is_game_possible = true;
+    for (int i = 0; games[i] != NULL; ++i) {
+        // printf("  cube set: %s\n", games[i]);
+        char *cubes[6] = {0};
+        tokenize_by_delim(&games[i], ",", (char **) cubes);
+        for (int i = 0; cubes[i] != NULL; ++i) {
+            cubes[i] = trim(&cubes[i]);
+            // printf("    cube: %s\n", cubes[i]);
+            char *tuple[2] = {0};
+            tokenize_by_delim(&cubes[i], " ", (char **)tuple);
+            char *cube_count = tuple[0];
+            char *cube_color = tuple[1];
+            // printf("      cube color: %s, cube count: %s\n", cube_color, cube_count);
+            bool is_valid = validate_color_count(cube_color, cube_count);
+            is_game_possible &= is_valid;
         }
     }
-    set_count++;
-    bool is_possible = true;
-    bool is_valid = false;
-    for (int i = 0; i < set_count; ++i) {
-        char *set = sets_of_cubes[i];
-        char *token = 0;
-        while ((token = strsep(&set, ",")) != NULL) {
-            char *trimed_token = trim(&token);
-            char *color = NULL;
-            char *count_str = NULL;
-            char *new_token = NULL;
-            while ((new_token = strsep(&trimed_token, " ")) != NULL) {
-                if (!count_str) {
-                    count_str = new_token;
-                } else {
-                    color = new_token;
-                }
-            }
-            if (color == NULL) {
-                printf("color null line: %s\n", line);
-            }
-            assert(color != NULL);
-            assert(count_str != NULL);
-            is_valid = validate_color_count(color, count_str);
-            is_possible &= is_valid;
-        }
-    }
-    return is_possible;
+    return is_game_possible;
 }
 
 bool validate_color_count(char *color, char *count_str) {
@@ -152,15 +132,9 @@ void chop_by_delim(char **string, char *delim) {
     strsep(string, delim);
 }
 
-char ** tokenize_by_delim(char **string, char *delim) {
-    char **tokens = malloc(sizeof(char **) * 16);
-    if (tokens == NULL) {
-        fprintf(stderr, "Unable to allocate memory\n");
-        return NULL;
-    }
+char ** tokenize_by_delim(char **string, char *delim, char **tokens) {
     char *token = NULL;
-    size_t i = 0;
-    while ((token = strsep(string, delim)) != NULL) {
+    for (size_t i = 0; (token = strsep(string, delim)) != NULL; ++i) {
         tokens[i] = token;
     }
     return tokens;
