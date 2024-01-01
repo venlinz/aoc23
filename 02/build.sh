@@ -2,8 +2,7 @@
 
 set -xe
 
-# echo "Running solution written in C"
-gcc-13 -o main main.c -pedantic -Wall -Wextra -g
+gcc-13  -pedantic -Wall -Wextra -g -o main main.c -L$LOCAL_LIBRARY_LIB_PATH -I$LOCAL_LIBRARY_INCLUDE_PATH -lstrings
 ./main
 
 # echo "\nRunning solution written in Rust"

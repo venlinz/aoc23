@@ -4,12 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "/Users/venkat-20297/code/clib/strings.h"
-
-char * lines(char **string);
-void chop_by_delim(char **string, char *delim);
-char * read_file_as_string(const char *filepath);
-char ** tokenize_by_delims(char **string, char *delim, char **tokens);
+#include <strings.h>
 
 typedef struct {
     char *color;
@@ -147,50 +142,4 @@ bool validate_color_count(CubeSet cubes) {
         return MAX_GREEN_CUBES >= count;
     }
     return false;
-}
-
-char * lines(char **string) {
-    char *line = strsep(string, "\n");
-    if (line != NULL && line[0] == '\n') {
-        return NULL;
-    } else if (strlen(line) == 0) {
-        return NULL;
-    }
-    return line;
-}
-
-void chop_by_delim(char **string, char *delim) {
-    strsep(string, delim);
-}
-
-char ** tokenize_by_delims(char **string, char *delim, char **tokens) {
-    char *token = NULL;
-    for (size_t i = 0; (token = strsep(string, delim)) != NULL; ++i) {
-        tokens[i] = token;
-    }
-    return tokens;
-}
-
-char * read_file_as_string(const char *filepath) {
-    FILE *f = fopen(filepath, "r");
-    if (f == NULL) {
-        perror("ERROR");
-        return NULL;
-    }
-    int ret = fseek(f, 0, SEEK_END);
-    assert(ret == 0 && "fseek failed");
-    size_t filesize = ftell(f);
-    rewind(f);
-    char *input = malloc(filesize + 1);
-    if (input == NULL) {
-        fprintf(stderr, "ERROR: Unable to alloc memmory");
-        return NULL;
-    }
-    ret = fread(input, filesize, 1, f);
-    if (!feof(f) && ferror(f)) {
-        perror("ERROR: ");
-        return NULL;
-    }
-    fclose(f);
-    return input;
 }
