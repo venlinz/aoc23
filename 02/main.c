@@ -6,8 +6,11 @@
 
 #include "/Users/venkat-20297/code/clib/strings.h"
 
+char * lines(char **string);
+void chop_by_delim(char **string, char *delim);
 char * get_input(const char *filepath);
-bool check_is_game_possible(char *line, int len);
+
+bool check_is_game_possible(char *line);
 bool validate_color_count(char *color, char *count_str);
 
 
@@ -37,24 +40,17 @@ int main(void) {
 }
 
 int part1(char *input) {
-    int sum = 0;
-    char line[256] = {0};
-    int k = 0;
-    int line_count = 1;
-    for (int i = 0; input[i] != '\0'; ++i) {
-        if (input[i] == '\n') {
-            line[k] = '\0';
-            bool is_possible = check_is_game_possible(line, k);
-            if (is_possible)
-                sum += line_count;
-            k = 0;
-            line_count++;
-            continue;
+    int sumation_of_possible_game_nos = 0;
+    char *line = NULL;
+    int game_number = 1;
+    while ((line = lines(&input)) != NULL) {
+        bool is_possible = check_is_game_possible(line);
+        if (is_possible) {
+            sumation_of_possible_game_nos += game_number;
         }
-        line[k] = input[i];
-        k++;
+        game_number++;
     }
-    return sum;
+    return sumation_of_possible_game_nos;
 }
 
 // int part2(char *input) {
@@ -82,15 +78,13 @@ char * get_input(const char *filepath) {
     return input;
 }
 
-bool check_is_game_possible(char *line, int len) {
+bool check_is_game_possible(char *line) {
     char sets_of_cubes[10][256] = {0};
     int set_count = 0;
     int k = 0;
-    for (int i = 0; i < len; i++) {
-        if (line[i] == ':') {
-            i += 2;
-            k = 0;
-        }
+    chop_by_delim(&line, ":");
+    size_t len = strlen(line);
+    for (size_t i = 0; i < len; i++) {
         if (line[i] == ';') {
             set_count++;
             i++;
@@ -127,7 +121,6 @@ bool check_is_game_possible(char *line, int len) {
             is_possible &= is_valid;
         }
     }
-    printf("linE: %s, ret: %i\n", line, is_valid);
     return is_possible;
 }
 
@@ -143,4 +136,32 @@ bool validate_color_count(char *color, char *count_str) {
         return MAX_GREEN_CUBES >= count;
     }
     return false;
+}
+
+char * lines(char **string) {
+    char *line = strsep(string, "\n");
+    if (line != NULL && line[0] == '\n') {
+        return NULL;
+    } else if (strlen(line) == 0) {
+        return NULL;
+    }
+    return line;
+}
+
+void chop_by_delim(char **string, char *delim) {
+    strsep(string, delim);
+}
+
+char ** tokenize_by_delim(char **string, char *delim) {
+    char **tokens = malloc(sizeof(char **) * 16);
+    if (tokens == NULL) {
+        fprintf(stderr, "Unable to allocate memory\n");
+        return NULL;
+    }
+    char *token = NULL;
+    size_t i = 0;
+    while ((token = strsep(string, delim)) != NULL) {
+        tokens[i] = token;
+    }
+    return tokens;
 }
