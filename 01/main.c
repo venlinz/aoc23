@@ -1,19 +1,17 @@
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <strings.h>
 
 typedef struct {
     int first_num;
     int last_num;
 } NumberPair;
 
-char * get_input(const char *filepath);
 bool is_digit(char c);
 int part1(char *input);
 int part2(char *input);
-int is_word_digit(char *input);
 int get_second_number_for_part2(char *input);
 NumberPair get_first_and_last_number_with_word(char * line, int line_len);
 // int combine_numbers(int first_num, int second_num);
@@ -43,7 +41,7 @@ Number NUMBERS[NUMBERS_LEN] =
 
 int main(void) {
     const char *filepath = "./input.txt";
-    char *input = get_input(filepath);
+    char *input = read_file_as_string(filepath);
     if (input == NULL)
     {
         return 1;
@@ -96,39 +94,8 @@ int part1(char *input) {
     return sum;
 }
 
-char * get_input(const char *filepath) {
-    FILE *f = fopen(filepath, "r");
-    if (f == NULL) {
-        perror("ERROR");
-        return NULL;
-    }
-    int ret = fseek(f, 0, SEEK_END);
-    assert(ret == 0 && "fseek failed");
-    size_t filesize = ftell(f);
-    assert(filesize <= MAX_FILE_SIZE);
-    rewind(f);
-    ret = fread(input, filesize, 1, f);
-    // assert(ret == 1);
-    if (!feof(f) && ferror(f)) {
-        perror("ERROR: ");
-        return NULL;
-    }
-    fclose(f);
-    return input;
-}
-
 bool is_digit(char c) {
     return c >= '0' && c <= '9';
-}
-
-int is_word_digit(char *input) {
-    for (int i = 0; i < NUMBERS_LEN; ++i) {
-        if (strncmp(NUMBERS[i].number, input, NUMBERS[i].len) == 0) {
-            // printf("number: %s, input: %s\n", NUMBERS[i].number, input);
-            return i + 1;
-        }
-    }
-    return 0;
 }
 
 int get_second_number_for_part2(char *input) {
